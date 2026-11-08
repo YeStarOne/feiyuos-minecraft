@@ -1,0 +1,5 @@
+rcon-password.local
+*.local
+bot/bot.log
+bot/state/
+node_modules/

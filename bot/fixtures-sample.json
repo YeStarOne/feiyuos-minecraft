@@ -1,0 +1,105 @@
+[
+  {
+    "id": "scope_unwrap_ok",
+    "probe": "/state",
+    "payload_of": "unwrap",
+    "snapshot": { "ok": true, "data": { "pos": { "y": 80 }, "health": 20 } },
+    "condition": "pos.y > 70",
+    "params": { "timeout_s": 15, "interval_s": 1 },
+    "expect": { "status": 200, "reason": "matched", "matched": true }
+  },
+  {
+    "id": "scope_identity_timeout",
+    "probe": "/state",
+    "payload_of": "identity",
+    "snapshot": { "ok": true, "data": { "pos": { "y": 80 } } },
+    "condition": "pos.y > 70",
+    "params": { "timeout_s": 12, "interval_s": 1 },
+    "expect": { "status": 200, "reason": "timeout", "matched": false, "samples_failed": 0 }
+  },
+  {
+    "id": "mid_change_match",
+    "probe": "/inv/count",
+    "payload_of": "unwrap",
+    "snapshot": [
+      { "ok": true, "data": {} },
+      { "ok": true, "data": { "stone": 5 } },
+      { "ok": true, "data": { "stone": 12 } }
+    ],
+    "condition": "stone >= 10",
+    "params": { "timeout_s": 15, "interval_s": 1 },
+    "expect": { "status": 200, "reason": "matched", "matched": true }
+  },
+  {
+    "id": "long_item_name_ok",
+    "probe": "/inv/count",
+    "payload_of": "unwrap",
+    "snapshot": { "ok": true, "data": { "waxed_weathered_cut_copper_stairs": 2 } },
+    "condition": "waxed_weathered_cut_copper_stairs >= 1",
+    "params": { "timeout_s": 15, "interval_s": 1 },
+    "expect": { "status": 200, "reason": "matched", "matched": true }
+  },
+  {
+    "id": "all_ok_no_match_timeout_not_degraded",
+    "probe": "/state",
+    "payload_of": "unwrap",
+    "snapshot": { "ok": true, "data": { "health": 20 } },
+    "condition": "health > 999",
+    "params": { "timeout_s": 12, "interval_s": 1 },
+    "expect": { "status": 200, "reason": "timeout", "samples_failed": 0 }
+  },
+  {
+    "id": "degraded_half_failed",
+    "probe": "/state",
+    "payload_of": "unwrap",
+    "snapshot": [
+      { "status": 500, "body": null },
+      { "status": 500, "body": null },
+      { "status": 500, "body": null },
+      { "ok": true, "data": { "health": 20 } }
+    ],
+    "condition": "health > 5",
+    "params": { "timeout_s": 12, "interval_s": 1 },
+    "expect": { "status": 200, "reason": "degraded", "matched": false }
+  },
+  {
+    "id": "inv_count_zero_wait",
+    "probe": "/inv/count",
+    "payload_of": "unwrap",
+    "snapshot": [
+      { "ok": true, "data": { "dirt": 5 } },
+      { "ok": true, "data": { "dirt": 5, "stone": 3 } },
+      { "ok": true, "data": { "dirt": 5, "stone": 12 } }
+    ],
+    "condition": "stone >= 10",
+    "params": { "timeout_s": 15, "interval_s": 1 },
+    "expect": { "status": 200, "reason": "matched", "matched": true }
+  },
+  {
+    "id": "inv_count_typo",
+    "probe": "/inv/count",
+    "payload_of": "unwrap",
+    "snapshot": { "ok": true, "data": { "stone": 5 } },
+    "condition": "stoen >= 10",
+    "params": {},
+    "expect": { "status": 400 }
+  },
+  {
+    "id": "bad_condition_forbidden",
+    "probe": "/state",
+    "payload_of": "unwrap",
+    "snapshot": { "ok": true, "data": { "pos": { "y": 80 } } },
+    "condition": "pos[0].y > 5",
+    "params": {},
+    "expect": { "status": 400 }
+  },
+  {
+    "id": "unknown_probe_404",
+    "probe": "/nope",
+    "payload_of": "unwrap",
+    "snapshot": { "ok": true, "data": {} },
+    "condition": "a > 1",
+    "params": {},
+    "expect": { "status": 404 }
+  }
+]

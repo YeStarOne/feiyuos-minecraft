@@ -1,0 +1,858 @@
+{
+  "fixture_v": 1,
+  "contract": "wait/1.1",
+  "notes": [
+    "语言无关：Python 侧 wait_probe.py、Node 侧 run_cases.js 跑同一份。",
+    "snapshot 每个元素 = 一次采样的 payload；元素用完则重复最后一个。",
+    "{\"__error\": \"...\"} = 这次采样拿不到 payload（transport/非 2xx/非 JSON）。",
+    "max_samples = 本用例的采样预算（fixture 语义里 timeout_s 不决定次数，见 CONTRACT §8）。",
+    "expect 只校验列出的键；但 expect 里出现未知键必须报错（拼错不许静默通过）。",
+    "未列出的字段（value/elapsed_ms/effective_timeout_s）不参与判定。"
+  ],
+  "groups": {
+    "A 语法正例": 7,
+    "B 语法反例": 9,
+    "C 边界": 6,
+    "D 类型": 6,
+    "E 降级门": 5,
+    "F scope": 5,
+    "G /inv/count": 5,
+    "H 请求形状": 4,
+    "I 挂载": 1,
+    "J 字段钉住": 3
+  },
+  "cases": [
+    {
+      "id": "gp_eq_num",
+      "intent": "== 数字命中",
+      "path": "/state",
+      "condition": "invSlotsUsed == 36",
+      "snapshot": [
+        {
+          "invSlotsUsed": 36,
+          "invSlotsTotal": 36
+        }
+      ],
+      "expect": {
+        "reason": "matched",
+        "matched_at_sample": 1,
+        "samples_total": 1
+      }
+    },
+    {
+      "id": "gp_ne_num",
+      "intent": "!= 数字命中",
+      "path": "/state",
+      "condition": "invSlotsUsed != 36",
+      "snapshot": [
+        {
+          "invSlotsUsed": 35,
+          "invSlotsTotal": 36
+        }
+      ],
+      "expect": {
+        "reason": "matched",
+        "matched_at_sample": 1
+      }
+    },
+    {
+      "id": "gp_lt",
+      "intent": "< 数字命中",
+      "path": "/state",
+      "condition": "invSlotsUsed < 36",
+      "snapshot": [
+        {
+          "invSlotsUsed": 35,
+          "invSlotsTotal": 36
+        }
+      ],
+      "expect": {
+        "reason": "matched",
+        "matched_at_sample": 1
+      }
+    },
+    {
+      "id": "gp_le",
+      "intent": "<= 数字命中（等于也要算）",
+      "path": "/state",
+      "condition": "invSlotsUsed <= 36",
+      "snapshot": [
+        {
+          "invSlotsUsed": 36,
+          "invSlotsTotal": 36
+        }
+      ],
+      "expect": {
+        "reason": "matched",
+        "matched_at_sample": 1
+      }
+    },
+    {
+      "id": "gp_gt",
+      "intent": "> 数字命中",
+      "path": "/state",
+      "condition": "invSlotsUsed > 0",
+      "snapshot": [
+        {
+          "invSlotsUsed": 1,
+          "invSlotsTotal": 36
+        }
+      ],
+      "expect": {
+        "reason": "matched",
+        "matched_at_sample": 1
+      }
+    },
+    {
+      "id": "gp_ge",
+      "intent": ">= 第二条样本才命中（长轮询语义）",
+      "path": "/state",
+      "condition": "invSlotsUsed >= 36",
+      "snapshot": [
+        {
+          "invSlotsUsed": 35,
+          "invSlotsTotal": 36
+        },
+        {
+          "invSlotsUsed": 36,
+          "invSlotsTotal": 36
+        }
+      ],
+      "expect": {
+        "reason": "matched",
+        "matched_at_sample": 2,
+        "samples_total": 2,
+        "samples_ok": 2,
+        "samples_failed": 0
+      }
+    },
+    {
+      "id": "gp_bool_true",
+      "intent": "true 字面量 + 布尔等值",
+      "path": "/health",
+      "condition": "ok == true",
+      "snapshot": [
+        {
+          "ok": true
+        }
+      ],
+      "expect": {
+        "reason": "matched",
+        "matched_at_sample": 1
+      }
+    },
+    {
+      "id": "gn_double_space",
+      "intent": "两个空格不是 SP：全串匹配，不做宽容",
+      "path": "/state",
+      "condition": "invSlotsUsed  ==  36",
+      "snapshot": [],
+      "expect": {
+        "reason": "bad_request",
+        "detail": "condition_grammar",
+        "matched": false,
+        "samples_total": 0
+      }
+    },
+    {
+      "id": "gn_and",
+      "intent": "禁 and/&&：组合条件必须由调用方拆成多次 wait",
+      "path": "/state",
+      "condition": "invSlotsUsed == 36 && invSlotsTotal == 36",
+      "snapshot": [],
+      "expect": {
+        "reason": "bad_request",
+        "detail": "condition_literal",
+        "matched": false,
+        "samples_total": 0
+      }
+    },
+    {
+      "id": "gn_bracket",
+      "intent": "禁括号：没有优先级，就不需要括号",
+      "path": "/state",
+      "condition": "(invSlotsUsed) == 36",
+      "snapshot": [],
+      "expect": {
+        "reason": "bad_request",
+        "detail": "condition_grammar",
+        "matched": false,
+        "samples_total": 0
+      }
+    },
+    {
+      "id": "gn_call",
+      "intent": "禁函数调用：条件来自模型，绝不进 eval",
+      "path": "/state",
+      "condition": "len(invSlotsUsed) == 36",
+      "snapshot": [],
+      "expect": {
+        "reason": "bad_request",
+        "detail": "condition_grammar",
+        "matched": false,
+        "samples_total": 0
+      }
+    },
+    {
+      "id": "gn_single_eq",
+      "intent": "单个 = 不是比较运算符",
+      "path": "/state",
+      "condition": "invSlotsUsed = 36",
+      "snapshot": [],
+      "expect": {
+        "reason": "bad_request",
+        "detail": "condition_grammar",
+        "matched": false,
+        "samples_total": 0
+      }
+    },
+    {
+      "id": "gn_trailing_nl",
+      "intent": "结尾换行必须拒（$ 锚点会让它静默通过）",
+      "path": "/state",
+      "condition": "invSlotsUsed == 36\n",
+      "snapshot": [],
+      "expect": {
+        "reason": "bad_request",
+        "detail": "condition_grammar",
+        "matched": false,
+        "samples_total": 0
+      }
+    },
+    {
+      "id": "gn_no_op",
+      "intent": "只有路径没有运算符",
+      "path": "/state",
+      "condition": "invSlotsUsed",
+      "snapshot": [],
+      "expect": {
+        "reason": "bad_request",
+        "detail": "condition_grammar",
+        "matched": false,
+        "samples_total": 0
+      }
+    },
+    {
+      "id": "gn_empty",
+      "intent": "空条件",
+      "path": "/state",
+      "condition": "",
+      "snapshot": [],
+      "expect": {
+        "reason": "bad_request",
+        "detail": "condition_grammar",
+        "matched": false,
+        "samples_total": 0
+      }
+    },
+    {
+      "id": "gn_fullwidth_digit",
+      "intent": "全角数字不是数字：字面量必须 [0-9]（Python 的 \\d 会吃 ３）",
+      "path": "/state",
+      "condition": "invSlotsUsed == ３６",
+      "snapshot": [
+        {
+          "invSlotsUsed": 36,
+          "invSlotsTotal": 36
+        }
+      ],
+      "expect": {
+        "reason": "bad_request",
+        "detail": "condition_literal",
+        "matched": false,
+        "samples_total": 0
+      }
+    },
+    {
+      "id": "bd_ident64",
+      "intent": "64 字符标识符收下（1333 物品 id 要放得下）",
+      "path": "/state",
+      "condition": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa == 1",
+      "snapshot": [
+        {
+          "invSlotsUsed": 36,
+          "invSlotsTotal": 36
+        }
+      ],
+      "expect": {
+        "reason": "timeout",
+        "samples_missing": 1,
+        "samples_ok": 1
+      }
+    },
+    {
+      "id": "bd_ident65",
+      "intent": "65 字符标识符必须拒",
+      "path": "/state",
+      "condition": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa == 1",
+      "snapshot": [],
+      "expect": {
+        "reason": "bad_request",
+        "detail": "path_ident_len",
+        "matched": false,
+        "samples_total": 0
+      }
+    },
+    {
+      "id": "bd_seg8",
+      "intent": "8 段路径收下",
+      "path": "/state",
+      "condition": "s.s.s.s.s.s.s.s == 1",
+      "snapshot": [
+        {
+          "invSlotsUsed": 36,
+          "invSlotsTotal": 36
+        }
+      ],
+      "expect": {
+        "reason": "timeout",
+        "samples_missing": 1
+      }
+    },
+    {
+      "id": "bd_seg9",
+      "intent": "9 段路径必须拒",
+      "path": "/state",
+      "condition": "s.s.s.s.s.s.s.s.s == 1",
+      "snapshot": [],
+      "expect": {
+        "reason": "bad_request",
+        "detail": "path_segments",
+        "matched": false,
+        "samples_total": 0
+      }
+    },
+    {
+      "id": "bd_expr128",
+      "intent": "128 字符表达式收下（内容本身取不到值，但请求合法）",
+      "path": "/state",
+      "condition": "ppppppppppppppp.ppppppppppppppp.ppppppppppppppp.ppppppppppppppp.ppppppppppppppp.ppppppppppppppp.ppppppppppppppp.qqqqqqqqqqq == 1",
+      "snapshot": [
+        {
+          "invSlotsUsed": 36,
+          "invSlotsTotal": 36
+        }
+      ],
+      "expect": {
+        "reason": "timeout",
+        "samples_ok": 1,
+        "samples_missing": 1
+      }
+    },
+    {
+      "id": "bd_expr129",
+      "intent": "129 字符表达式必须拒",
+      "path": "/state",
+      "condition": "ppppppppppppppp.ppppppppppppppp.ppppppppppppppp.ppppppppppppppp.ppppppppppppppp.ppppppppppppppp.ppppppppppppppp.qqqqqqqqqqqq == 1",
+      "snapshot": [],
+      "expect": {
+        "reason": "bad_request",
+        "detail": "expr_len",
+        "matched": false,
+        "samples_total": 0
+      }
+    },
+    {
+      "id": "ty_str_vs_num",
+      "intent": "数字不隐式转字符串：\"36\" != 36",
+      "path": "/state",
+      "condition": "invSlotsUsed == \"36\"",
+      "snapshot": [
+        {
+          "invSlotsUsed": 36,
+          "invSlotsTotal": 36
+        }
+      ],
+      "expect": {
+        "reason": "timeout",
+        "samples_type_error": 1,
+        "matched": false
+      }
+    },
+    {
+      "id": "ty_num_vs_null",
+      "intent": "null 只和 null 比",
+      "path": "/state",
+      "condition": "invSlotsUsed == null",
+      "snapshot": [
+        {
+          "invSlotsUsed": 36,
+          "invSlotsTotal": 36
+        }
+      ],
+      "expect": {
+        "reason": "timeout",
+        "samples_type_error": 1
+      }
+    },
+    {
+      "id": "ty_bool_vs_num",
+      "intent": "布尔不是数字：true != 1",
+      "path": "/health",
+      "condition": "ok == 1",
+      "snapshot": [
+        {
+          "ok": true
+        }
+      ],
+      "expect": {
+        "reason": "timeout",
+        "samples_type_error": 1
+      }
+    },
+    {
+      "id": "ty_order_bool",
+      "intent": "排序只对数字开放，布尔排序必须拒",
+      "path": "/health",
+      "condition": "ok > false",
+      "snapshot": [
+        {
+          "ok": true
+        }
+      ],
+      "expect": {
+        "reason": "timeout",
+        "samples_type_error": 1
+      }
+    },
+    {
+      "id": "ty_missing",
+      "intent": "字段不存在 = missing（不是 false，也不是 0）",
+      "path": "/state",
+      "condition": "nope == 1",
+      "snapshot": [
+        {
+          "invSlotsUsed": 36,
+          "invSlotsTotal": 36
+        }
+      ],
+      "expect": {
+        "reason": "timeout",
+        "samples_missing": 1,
+        "samples_type_error": 0
+      }
+    },
+    {
+      "id": "ty_walk_into_scalar",
+      "intent": "往数字里下钻 = type_error（与 missing 必须可区分）",
+      "path": "/state",
+      "condition": "invSlotsUsed.deep == 1",
+      "snapshot": [
+        {
+          "invSlotsUsed": 36,
+          "invSlotsTotal": 36
+        }
+      ],
+      "expect": {
+        "reason": "timeout",
+        "samples_missing": 0,
+        "samples_type_error": 1
+      }
+    },
+    {
+      "id": "dg_match_after_2fail",
+      "intent": "命中但近 3 个样本废了 2 个 -> degraded，不能报 matched",
+      "path": "/state",
+      "condition": "invSlotsUsed == 36",
+      "snapshot": [
+        {
+          "__error": "HTTP 500"
+        },
+        {
+          "__error": "read timeout"
+        },
+        {
+          "invSlotsUsed": 36,
+          "invSlotsTotal": 36
+        }
+      ],
+      "max_samples": 3,
+      "expect": {
+        "reason": "degraded",
+        "matched": false,
+        "samples_total": 3,
+        "samples_failed": 2,
+        "matched_at_sample": 3
+      }
+    },
+    {
+      "id": "dg_ratio_half",
+      "intent": "失败率正好 0.5 不算降级（门是 >，不是 >=）",
+      "path": "/state",
+      "condition": "invSlotsUsed >= 36",
+      "snapshot": [
+        {
+          "__error": "HTTP 500"
+        },
+        {
+          "invSlotsUsed": 35,
+          "invSlotsTotal": 36
+        },
+        {
+          "__error": "HTTP 500"
+        },
+        {
+          "invSlotsUsed": 35,
+          "invSlotsTotal": 36
+        }
+      ],
+      "max_samples": 4,
+      "expect": {
+        "reason": "timeout",
+        "samples_total": 4,
+        "samples_failed": 2
+      }
+    },
+    {
+      "id": "dg_all_fail",
+      "intent": "全废 = degraded（\"看不见\"不等于\"条件不成立\"）",
+      "path": "/state",
+      "condition": "invSlotsUsed == 36",
+      "snapshot": [
+        {
+          "__error": "connect refused"
+        },
+        {
+          "__error": "connect refused"
+        },
+        {
+          "__error": "connect refused"
+        }
+      ],
+      "max_samples": 3,
+      "expect": {
+        "reason": "degraded",
+        "samples_total": 3,
+        "samples_ok": 0,
+        "samples_failed": 3
+      }
+    },
+    {
+      "id": "dg_match_early",
+      "intent": "第一条就命中：立即返回，不再采样",
+      "path": "/state",
+      "condition": "invSlotsUsed == 36",
+      "snapshot": [
+        {
+          "invSlotsUsed": 36,
+          "invSlotsTotal": 36
+        },
+        {
+          "__error": "HTTP 500"
+        },
+        {
+          "__error": "HTTP 500"
+        }
+      ],
+      "max_samples": 3,
+      "expect": {
+        "reason": "matched",
+        "samples_total": 1,
+        "samples_failed": 0,
+        "matched_at_sample": 1
+      }
+    },
+    {
+      "id": "dg_match_1of3",
+      "intent": "近 3 个只废 1 个 -> 仍然是 matched",
+      "path": "/state",
+      "condition": "invSlotsUsed == 36",
+      "snapshot": [
+        {
+          "__error": "HTTP 500"
+        },
+        {
+          "invSlotsUsed": 35,
+          "invSlotsTotal": 36
+        },
+        {
+          "invSlotsUsed": 36,
+          "invSlotsTotal": 36
+        }
+      ],
+      "max_samples": 3,
+      "expect": {
+        "reason": "matched",
+        "samples_total": 3,
+        "samples_failed": 1,
+        "matched_at_sample": 3
+      }
+    },
+    {
+      "id": "sc_inv",
+      "intent": "/inv 不进条件面（数组，且节点类型要靠猜）",
+      "path": "/inv",
+      "condition": "x == 1",
+      "snapshot": [],
+      "expect": {
+        "reason": "bad_request",
+        "detail": "path_not_waitable",
+        "matched": false,
+        "samples_total": 0
+      }
+    },
+    {
+      "id": "sc_query",
+      "intent": "带 query 的路径不是精确路径",
+      "path": "/state?x=1",
+      "condition": "invSlotsUsed == 1",
+      "snapshot": [],
+      "expect": {
+        "reason": "bad_request",
+        "detail": "path_not_waitable",
+        "matched": false,
+        "samples_total": 0
+      }
+    },
+    {
+      "id": "sc_trailing_slash",
+      "intent": "结尾斜杠不是精确路径",
+      "path": "/state/",
+      "condition": "invSlotsUsed == 1",
+      "snapshot": [],
+      "expect": {
+        "reason": "bad_request",
+        "detail": "path_not_waitable",
+        "matched": false,
+        "samples_total": 0
+      }
+    },
+    {
+      "id": "sc_no_slash",
+      "intent": "相对路径不收",
+      "path": "state",
+      "condition": "invSlotsUsed == 1",
+      "snapshot": [],
+      "expect": {
+        "reason": "bad_request",
+        "detail": "path_not_waitable",
+        "matched": false,
+        "samples_total": 0
+      }
+    },
+    {
+      "id": "sc_toggle",
+      "intent": "GET /fishbot 本身就是 toggle：绝不能进 wait 白名单",
+      "path": "/fishbot",
+      "condition": "ok == true",
+      "snapshot": [],
+      "expect": {
+        "reason": "bad_request",
+        "detail": "path_not_waitable",
+        "matched": false,
+        "samples_total": 0
+      }
+    },
+    {
+      "id": "iv_count_ok",
+      "intent": "/inv/count 相对路径：首段就是物品名",
+      "path": "/inv/count",
+      "condition": "iron_ingot >= 64",
+      "snapshot": [
+        {
+          "iron_ingot": 100,
+          "coal": 3
+        }
+      ],
+      "expect": {
+        "reason": "matched",
+        "matched_at_sample": 1
+      }
+    },
+    {
+      "id": "iv_count_zero",
+      "intent": "数量为 0 是合法值：判 true，且不许记成 missing",
+      "path": "/inv/count",
+      "condition": "iron_ingot == 0",
+      "snapshot": [
+        {
+          "iron_ingot": 0
+        }
+      ],
+      "expect": {
+        "reason": "matched",
+        "samples_missing": 0,
+        "matched_at_sample": 1
+      }
+    },
+    {
+      "id": "iv_count_typo",
+      "intent": "物品名拼错 -> unknown_field（快照里故意有这个错键：查当前 payload 就会漏）",
+      "path": "/inv/count",
+      "condition": "iron_ingott == 0",
+      "snapshot": [
+        {
+          "iron_ingott": 0
+        }
+      ],
+      "expect": {
+        "reason": "bad_request",
+        "detail": "unknown_field",
+        "matched": false,
+        "samples_total": 0
+      }
+    },
+    {
+      "id": "iv_count_absent_zero",
+      "intent": "count map 语义：不在表里 = 0，所以\"没有铁锭\"时 == 0 必须立刻命中",
+      "path": "/inv/count",
+      "condition": "iron_ingot == 0",
+      "snapshot": [
+        {
+          "coal": 3
+        }
+      ],
+      "expect": {
+        "reason": "matched",
+        "samples_missing": 0,
+        "matched_at_sample": 1
+      }
+    },
+    {
+      "id": "iv_count_absent_nonzero",
+      "intent": "count map 语义：0 >= 64 不成立，等到超时——但记的是 ok 不是 missing",
+      "path": "/inv/count",
+      "condition": "iron_ingot >= 64",
+      "snapshot": [
+        {
+          "coal": 3
+        }
+      ],
+      "expect": {
+        "reason": "timeout",
+        "samples_missing": 0,
+        "samples_ok": 1
+      }
+    },
+    {
+      "id": "rq_no_condition",
+      "intent": "缺 condition",
+      "path": "/state",
+      "snapshot": [],
+      "expect": {
+        "reason": "bad_request",
+        "detail": "request_shape",
+        "matched": false,
+        "samples_total": 0
+      }
+    },
+    {
+      "id": "rq_condition_not_string",
+      "intent": "condition 不是字符串（不做隐式转换）",
+      "path": "/state",
+      "condition": 36,
+      "snapshot": [],
+      "expect": {
+        "reason": "bad_request",
+        "detail": "request_shape",
+        "matched": false,
+        "samples_total": 0
+      }
+    },
+    {
+      "id": "rq_timeout_zero",
+      "intent": "timeout_s=0 拒绝（0 不是\"立即返回\"的合法写法）",
+      "path": "/state",
+      "condition": "invSlotsUsed == 36",
+      "timeout_s": 0,
+      "snapshot": [
+        {
+          "invSlotsUsed": 36,
+          "invSlotsTotal": 36
+        }
+      ],
+      "expect": {
+        "reason": "bad_request",
+        "detail": "request_shape",
+        "matched": false,
+        "samples_total": 0,
+        "effective_timeout_s": 0
+      }
+    },
+    {
+      "id": "rq_timeout_clamp",
+      "intent": "timeout_s=999 夹到 300 并自报 effective",
+      "path": "/state",
+      "condition": "invSlotsUsed == 36",
+      "timeout_s": 999,
+      "snapshot": [
+        {
+          "invSlotsUsed": 36,
+          "invSlotsTotal": 36
+        }
+      ],
+      "expect": {
+        "reason": "matched",
+        "effective_timeout_s": 300
+      }
+    },
+    {
+      "id": "mt_payload_of",
+      "intent": "payload_of=data：挂载点负责解包，求值器只见 payload",
+      "path": "/state",
+      "condition": "invSlotsUsed == 36",
+      "payload_of": "data",
+      "snapshot": [
+        {
+          "ok": true,
+          "data": {
+            "invSlotsUsed": 36,
+            "invSlotsTotal": 36
+          }
+        }
+      ],
+      "expect": {
+        "reason": "matched",
+        "matched_at_sample": 1
+      }
+    },
+    {
+      "id": "pin_slots_total",
+      "intent": "invSlotsTotal 字段名钉住（改名必须让 fixture 红）",
+      "path": "/state",
+      "condition": "invSlotsTotal == 36",
+      "snapshot": [
+        {
+          "invSlotsUsed": 36,
+          "invSlotsTotal": 36
+        }
+      ],
+      "expect": {
+        "reason": "matched",
+        "matched_at_sample": 1
+      }
+    },
+    {
+      "id": "pin_slots_used",
+      "intent": "invSlotsUsed 字段名钉住",
+      "path": "/state",
+      "condition": "invSlotsUsed == 36",
+      "snapshot": [
+        {
+          "invSlotsUsed": 36,
+          "invSlotsTotal": 36
+        }
+      ],
+      "expect": {
+        "reason": "matched",
+        "matched_at_sample": 1
+      }
+    },
+    {
+      "id": "pin_time_day",
+      "intent": "【待 MC 确认字段名】/time 的 day",
+      "path": "/time",
+      "condition": "day >= 1",
+      "snapshot": [
+        {
+          "day": 3,
+          "worldTime": 600
+        }
+      ],
+      "expect": {
+        "reason": "matched",
+        "matched_at_sample": 1
+      }
+    }
+  ]
+}

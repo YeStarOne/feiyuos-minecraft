@@ -1,0 +1,90 @@
+[
+  {
+    "slug": "fabric-api",
+    "ver": "0.116.17+1.21.1",
+    "file": "fabric-api-0.116.17+1.21.1.jar",
+    "url": "https://cdn.modrinth.com/data/P7dR8mSH/versions/Mys3P7lK/fabric-api-0.116.17%2B1.21.1.jar",
+    "sha1": "810b2b0195371a012906241d8b85a32a1d6de53c",
+    "size": 2452735
+  },
+  {
+    "slug": "when-dungeons-arise",
+    "ver": "2.1.68",
+    "file": "DungeonsArise-1.21.1-2.1.68-fabric-release.jar",
+    "url": "https://cdn.modrinth.com/data/8DfbfASn/versions/g8oglmT0/DungeonsArise-1.21.1-2.1.68-fabric-release.jar",
+    "sha1": "67c35d9a55e1f16ae5b7b00d180f61a1578476fb",
+    "size": 11864952
+  },
+  {
+    "slug": "structory",
+    "ver": "1.3.17",
+    "file": "Structory_26.2_v1.3.7.jar",
+    "url": "https://cdn.modrinth.com/data/aKCwCJlY/versions/TUbwu7eG/Structory_26.2_v1.3.7.jar",
+    "sha1": "8a9a1a1b3f74398310420b6fbe2c26ef142bed42",
+    "size": 1261346
+  },
+  {
+    "slug": "terralith",
+    "ver": "2.6.2",
+    "file": "Terralith_1.21.x_v2.6.2.jar",
+    "url": "https://cdn.modrinth.com/data/8oi3bsk5/versions/eWDLFabb/Terralith_1.21.x_v2.6.2.jar",
+    "sha1": "c200e0c01f48aecd7f34c4be337d8ff65b60c2dc",
+    "size": 2813817
+  },
+  {
+    "slug": "ct-overhaul-village",
+    "ver": "3.6.4",
+    "file": "[fabric]ctov-1.21.1-3.6.4.jar",
+    "url": "https://cdn.modrinth.com/data/fgmhI8kH/versions/hye0jOsQ/%5Bfabric%5Dctov-1.21.1-3.6.4.jar",
+    "sha1": "d3bfb6e02c8848485987893c7074d3c8fc2e8662",
+    "size": 8153129
+  },
+  {
+    "slug": "dungeons-and-taverns",
+    "ver": "v4.4.4+mod",
+    "file": "dungeons-and-taverns-v4.4.4.jar",
+    "url": "https://cdn.modrinth.com/data/tpehi7ww/versions/EUlNXs9V/dungeons-and-taverns-v4.4.4.jar",
+    "sha1": "68c6f0dea960ce94f55f1f05d8893623da207be8",
+    "size": 24859360
+  },
+  {
+    "slug": "explorify",
+    "ver": "v1.6.5",
+    "file": "Explorify v1.6.5.mod.jar",
+    "url": "https://cdn.modrinth.com/data/HSfsxuTo/versions/CuBdAr31/Explorify%20v1.6.5.mod.jar",
+    "sha1": "5fb28be29200a41b034e423d87823eb19ad651cd",
+    "size": 767884
+  },
+  {
+    "slug": "moogs-voyager-structures",
+    "ver": "5.1.3",
+    "file": "MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
+    "url": "https://cdn.modrinth.com/data/OQAgZMH1/versions/PiFoSPXI/MoogsVoyagerStructures-universal-1.21-5.1.3.jar",
+    "sha1": "6759fa57891f731e54f865c13ffa0601a829b76a",
+    "size": 2234287
+  },
+  {
+    "slug": "moogs-structure-lib",
+    "ver": "3.4.2-fabric-1.21.1",
+    "file": "MoogsStructureLib-fabric-1.21.1-3.4.2.jar",
+    "url": "https://cdn.modrinth.com/data/1oUDhxuy/versions/wwRK5XgA/MoogsStructureLib-fabric-1.21.1-3.4.2.jar",
+    "sha1": "9e2bb2e9452c5edb1ee1fc87db6b897125417888",
+    "size": 1092175
+  },
+  {
+    "slug": "lithostitched",
+    "ver": "1.8.1-fabric-21.1",
+    "file": "lithostitched-1.8.1-fabric-21.1.jar",
+    "url": "https://cdn.modrinth.com/data/XaDC71GB/versions/GZFp8lnS/lithostitched-1.8.1-fabric-21.1.jar",
+    "sha1": "f295e89ad7f18a2ba20da2deb33efabfbe63ed43",
+    "size": 1015426
+  },
+  {
+    "slug": "fabric-server",
+    "ver": "0.20.1+1.1.2",
+    "file": "fabric-server-mc.1.21.1-loader.0.20.1-launcher.1.21.1.jar",
+    "url": "https://meta.fabricmc.net/v2/versions/loader/1.21.1/0.20.1/1.21.1/server/jar",
+    "sha1": null,
+    "size": 181840
+  }
+]
