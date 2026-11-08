@@ -26,7 +26,7 @@
 
 1. **服务器**：Fabric 1.21.1（见 [docs/Fabric迁移预案.md](docs/Fabric迁移预案.md)；`ops/use-fabric.flag` 控制开关，删 flag 重启=回滚 Paper）。关键 server.properties：`online-mode=false` + `enforce-secure-profile=false` + 端口绑定本机。
 2. **桥**：`bot/` 下 `npm install`（需要 node 22 + 原生 canvas 依赖用于视觉出帧）→ `node bot.js`（计划任务脚本见 [ops/setup-tasks.ps1](ops/setup-tasks.ps1)）。
-3. **接入**：平台仓 `superagent-sources/minecraft.ts` 部署后，面板把 `sources.minecraft.bots` 加上 `mc-bridge`；`/look` 需要 eye-server 的 `eye-server.mc.token`（见 [feiyu-eye](https://github.com/YeStarOne/feiyu-eye)）。
+3. **接入**：平台仓 `superagent-sources/minecraft.ts` 部署后，面板把 `sources.minecraft.bots` 加上 `mc-bridge`；`/look` 需要 eye-server 的 `eye-server.mc.token`（见 [feiyuos-eye](https://github.com/YeStarOne/feiyuos-eye)）。
 
 ## 自测
 
