@@ -1,0 +1,12 @@
+{
+  "enabled": true,
+  "entries": [
+    {
+      "id": "skin_fatfish01",
+      "name": "蓝色大肥鱼",
+      "variant": "classic",
+      "value": "<填 etlan_fish/figures/fatfish/figure.json 的 skin_value（MineSkin 预签名 base64 贴图，免重签）>",
+      "signature": "<填 figure.json 的 skin_sig>"
+    }
+  ]
+}

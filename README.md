@@ -3,6 +3,14 @@
 > 鱼鱼（BlueWhaleMaid）在 Minecraft 里的"身体"：mineflayer bot + HTTP 桥 + MCP 工具面。
 > 本仓是 [feiyu-os](https://github.com/YeStarOne/feiyu-os) 的一个**车道仓**——一个游戏一个仓，可单独安装。
 > 状态（2026-11-08）：Fabric 1.21.1 生产服 + 桥 19 端点 + MCP 6 工具 + wait/1.1 + 地标/长任务 + 视觉桥，全部真机验收。
+> 新增（2026-11-22）：第二车道 [numen/](numen/README.md)——**mod 同伴实体 + 客户端进程内大脑**（数字生命栈，接自家 agent2api），真机全链路验收。
+
+## 两条车道
+
+| 车道 | 目录 | 身体 | 大脑 | 适合 | 状态 |
+|---|---|---|---|---|---|
+| 一 · bot 桥 | `bot/` | mineflayer bot（离线玩家） | 云上 superagent | 云端 7×24 常驻 | 生产（2026-11-08） |
+| 二 · numen 数字生命 | `numen/` | numen 同伴实体（服务端持久化） | 客户端进程内 LLM 循环（mod 自带，Lua 工具面） | 单机真机陪伴+自己生存 | 真机验收（2026-11-22） |
 
 ## 接入卡（平台仓的模块注册表引用本节）
 

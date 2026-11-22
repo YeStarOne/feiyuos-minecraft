@@ -1,0 +1,5 @@
+{
+  "_说明": "launch-client.py 读这个文件找启动命令；真实文件叫 client.local.json（gitignore），本 sample 只做形状参考",
+  "launch_cmd_file": "D:/tmp/numen-src-1122/client_launch_cmd_fixed.txt",
+  "cwd": "G:/PCL 正式版 2.13.1.1/.minecraft/versions/1.21.1-NeoForge_Cam"
+}

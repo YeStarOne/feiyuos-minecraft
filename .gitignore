@@ -3,3 +3,5 @@ rcon-password.local
 bot/bot.log
 bot/state/
 node_modules/
+numen/scripts/client.local.json
+__pycache__/

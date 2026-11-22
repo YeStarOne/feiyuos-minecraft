@@ -1,0 +1,14 @@
+{
+  "entries": [
+    {
+      "id": "prov_example_0",
+      "name": "本地agent2api",
+      "provider": "vllm",
+      "model": "deepseek-v4.1-flash",
+      "api_key": "sk-REPLACE-WITH-YOUR-KEY",
+      "base_url": "http://127.0.0.1:3065/v1",
+      "reasoning_effort": "off",
+      "ctx": 200000
+    }
+  ]
+}
