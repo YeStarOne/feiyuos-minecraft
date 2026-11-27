@@ -9,6 +9,9 @@
 client.local.json（模板 client.local.sample.json）：
     launch_cmd_file : PCL 导出并修好掩码的启动命令文件（一行）
     cwd             : MC 版本目录（PCL 命令的 --gameDir 同款）
+    extra_args      : 可选，追加到命令尾部的参数列表；
+                      ⭐PCL 命令本身不带连服参数（11-28 实证，标题屏干等），
+                      自动连服靠 ["--quickPlayMultiplayer", "127.0.0.1:25566"]
 
 启动命令陷阱（为什么需要"修好的文件"）：
     PCL 导出命令带两类掩码——C:\\Users\\************* 与 uuid 掩码
@@ -46,6 +49,9 @@ def main():
     if "--dry-run" in sys.argv:
         print(cmd[:300] + ("...(%d chars)" % len(cmd)))
         return 0
+    extra = cfg.get("extra_args") or []
+    if extra:
+        cmd = cmd + " " + " ".join('"%s"' % a if " " in a else a for a in extra)
     import subprocess
     subprocess.Popen(
         cmd,
